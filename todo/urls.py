@@ -5,3 +5,4 @@ urlpatterns = [
     path("home/", include("base.urls")),
     path("admin/", admin.site.urls),
 ]
+urlpatterns += [path(r"^silk/", include("silk.urls", namespace="silk"))]

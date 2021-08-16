@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from .models import Task
-from django.http import HttpResponse
-import datetime
 
 
 class TaskList(ListView):
@@ -17,8 +17,19 @@ class TaskDetail(DetailView):
     template_name = "base/task.html"
 
 
-def current_datetime(request):
-    now = datetime.datetime.now()
-    some_value = "there must be sone info"
-    html = "<html><body>It is now %s.</body></html>" % now
-    return HttpResponse(html)
+class TaskCreate(CreateView):
+    model = Task
+    fields = "__all__"
+    success_url = reverse_lazy("tasks")
+
+
+class TaskUpdate(UpdateView):
+    model = Task
+    fields = "__all__"
+    success_url = reverse_lazy("tasks")
+
+
+class TaskDelete(DeleteView):
+    model = Task
+    context_object_name = "task"
+    success_url = reverse_lazy("tasks")

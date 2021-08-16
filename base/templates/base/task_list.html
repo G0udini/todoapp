@@ -1,12 +1,16 @@
 <h1>My ToDo List</h1>
+<h3><a href= "{% url 'task-create' %}">Create task</a></h3>
 <table>
     <tr>
         <th>Item</th>
+    <br>
     </tr>
     {% for task in tasks %}
     <tr>
         <td>{{ task.title }}</td>
         <td><a href= "{% url 'task' task.id %}">View</a></td>
+        <td><a href= "{% url 'task-update' task.id %}">Update</a></td>
+        <td><a href= "{% url 'task-delete' task.id %}">Delete</a></td>
     </tr>
     {% empty %}
     <h3>No Items in List</h3>
