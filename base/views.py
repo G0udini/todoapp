@@ -9,6 +9,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from django.db import transaction
+from django.views import View
+from .forms import PositionForm
+
 
 class TaskList(LoginRequiredMixin, ListView):
     model = Task
@@ -27,12 +31,6 @@ class TaskList(LoginRequiredMixin, ListView):
         return context
 
 
-class TaskDetail(LoginRequiredMixin, DetailView):
-    model = Task
-    context_object_name = "task"
-    template_name = "base/task.html"
-
-
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
     fields = ["title", "description", "complete"]
@@ -45,7 +43,7 @@ class TaskCreate(LoginRequiredMixin, CreateView):
 
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
-    fields = "__all__"
+    fields = ["title", "description", "complete"]
     success_url = reverse_lazy("tasks")
 
 
@@ -53,6 +51,10 @@ class TaskDelete(LoginRequiredMixin, DeleteView):
     model = Task
     context_object_name = "task"
     success_url = reverse_lazy("tasks")
+
+    def get_queryset(self):
+        owner = self.request.user
+        return self.model.objects.filter(user=owner)
 
 
 class CustromLogin(LoginView):
@@ -82,3 +84,16 @@ class RegisterPage(FormView):
         if self.request.user.is_authenticated:
             return redirect("tasks")
         return super(RegisterPage, self).get(*args, **kwargs)
+
+
+class TaskReorder(View):
+    def post(self, request):
+        form = PositionForm(request.POST)
+
+        if form.is_valid():
+            positionList = form.cleaned_data["position"].split(",")
+
+            with transaction.atomic():
+                self.request.user.set_task_order(positionList)
+
+        return redirect(reverse_lazy("tasks"))

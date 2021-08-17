@@ -1,13 +1,22 @@
 {% extends 'base/main.html' %}
 {% block content %}
+<div class="header-bar">
+    <h1>Регистрация</h1>
+</div>
+<div>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Имя</label>
+        {{form.username}}
 
-<h1>Registration</h1>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Register">
-</form>
+        <label>Пароль</label>
+        {{form.password1}}
 
-<p>If already have an account: <a href="{% url 'login' %}">Login</a></p>
+        <label>Повторите пароль</label>
+        {{form.password2}}
+        <input style="margin-top: 10px;" class="button" type="submit" value="Регистрация">
+    </form>
+    <p>Уже есть аккаунта?: <a href="{% url 'login' %}">Войти</a></p>
+</div>
 
 {% endblock content %}
