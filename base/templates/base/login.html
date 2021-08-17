@@ -1,3 +1,6 @@
+{% extends 'base/main.html' %}
+{% block content %}
+
 <h1>Login</h1>
 <form method="POST">
     {% csrf_token %}
@@ -6,3 +9,5 @@
 </form>
 
 <p>If no account: <a href="{% url 'register' %}">Registration</a></p>
+
+{% endblcok content %}

@@ -3,3 +3,5 @@ Simple ToDo application
 2. Add functions to Login and Logout
 3. Add separation to every account
 4. Add registration function and redirection
+5. Add search form for tasks
+6. Add basic style to pages
