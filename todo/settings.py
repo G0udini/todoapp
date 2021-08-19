@@ -78,7 +78,7 @@ WSGI_APPLICATION = "todo.wsgi.application"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.postgresql_psycopg2",
+        "ENGINE": "django.db.backends.postgresql",
         "NAME": "d59ed5vu2g4ii5",
         "USER": "gxzhtsrdmktoai",
         "PASSWORD": "d12a71d1cd06c71f645f1c2f056961ed81f9ae7765040e095946e548253fac04",
