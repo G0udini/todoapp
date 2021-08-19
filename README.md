@@ -5,3 +5,4 @@ Simple ToDo application
 4. Add registration function and redirection
 5. Add search form for tasks
 6. Add basic style to pages
+7. Add files to deploy project on heroku
