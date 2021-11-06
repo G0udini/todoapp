@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,15 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-=schx#3w%ukeeeqkm-&4hfgta$3h9xv+0+d$2m5wfsdgcz8h1#"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = [
-    "secret-wave-92172.herokuapp.com",
-    "127.0.0.1",
-]
+ALLOWED_HOSTS = ["127.0.0.1", os.getenv("ALLOWED_HOSTS")]
 
 
 # Application definition
@@ -40,9 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_extensions",
     "base.apps.BaseConfig",
-    # "debug_toolbar",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -53,7 +51,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "todo.urls"
@@ -81,12 +79,12 @@ WSGI_APPLICATION = "todo.wsgi.application"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "d59ed5vu2g4ii5",
-        "USER": "gxzhtsrdmktoai",
-        "PASSWORD": "d12a71d1cd06c71f645f1c2f056961ed81f9ae7765040e095946e548253fac04",
-        "HOST": "ec2-35-153-114-74.compute-1.amazonaws.com",
-        "PORT": "5432",
+        "ENGINE": os.getenv("DATABASE_ENGINE"),
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": os.getenv("DATABASE_PORT"),
     }
 }
 
