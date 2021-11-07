@@ -1,9 +1,12 @@
 {% extends 'base/main.html' %}
+
+{% block title %}Регистрация{% endblock title %}
+
 {% block content %}
 <div class="header-bar">
     <h1>Регистрация</h1>
 </div>
-<div>
+<div class="container-body">
     <form method="POST">
         {% csrf_token %}
         <label>Имя</label>
@@ -14,7 +17,9 @@
 
         <label>Повторите пароль</label>
         {{form.password2}}
-        <input style="margin-top: 10px;" class="button" type="submit" value="Регистрация">
+        <div class="button-center">
+            <input class="button" type="submit" value="Регистрация">
+        </div>
     </form>
     <p>Уже есть аккаунта?: <a href="{% url 'login' %}">Войти</a></p>
 </div>
