@@ -57,6 +57,8 @@ input {
     background-color: #fff;
     border-top: 1px solid #dfe4ea;
     overflow: hidden;
+    border-radius: 30px;
+    background-color: oldlace;
 }
 
 .task-title {
@@ -138,7 +140,6 @@ input {
     color: #EB796F;
     text-decoration: none;
     font-size: 42px;
-    text-shadow: 1px 1px #81413b;
 }
 
 #search-add-wrapper {
@@ -161,6 +162,21 @@ textarea {
     border-radius: 10px;
     padding: 10px;
     width: 90%;
+}
+
+input#search-field {
+    width: 350px;
+    margin-right: 10px;
+}
+
+input#del-button {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+span#arrow-symb {
+    font-size: 25px;
 }
 
 label {
@@ -195,6 +211,11 @@ label {
     
 }
 
+.task-status {
+    display: flex; 
+    align-items: baseline;
+}
+
 .card-body {
-    padding: 20px;
+    padding: 10px;
 }

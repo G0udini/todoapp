@@ -1,15 +1,18 @@
 {% extends 'base/main.html' %}
+
+{% block title %}Удалить задачу?{% endblock title %}
 {% block content %}
 
 <div class="header-bar">
-    <a href="{% url 'tasks' %}">&#8592; Назад</a>
+    <a href="{% url 'tasks' %}"><span id="arrow-symb">&#8592;</span>Назад</a>
 </div>
-
-<div class="card-body">
-    <form method="POST">
-        {% csrf_token %}
-        <p>Уверены что хотите удалить задачу? <b>"{{task}}"</b> </p>
-        <input class="button" type="submit" value="Удалить" />
-    </form>
+<div class="container-body">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <p style="text-align:center;">Уверены что хотите удалить задачу? <b> "{{task}}"</b> </p>
+            <input id="del-button" class="button" type="submit" value="Удалить" />
+        </form>
+    </div>
 </div>
 {% endblock content %}

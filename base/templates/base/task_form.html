@@ -1,26 +1,31 @@
 {% extends 'base/main.html' %}
+
+{% block title %}Новая задачая{% endblock title %}
+
 {% block content %}
 
 <div class="header-bar">
-    <a href="{% url 'tasks' %}">&#8592; Назад</a>
+    <a href="{% url 'tasks' %}"> <span id="arrow-symb">&#8592;</span>Назад</a>
 </div>
 
+<div class="container-body">
+    <div class="card-body">
+        <form method="POST" action="">
+            {% csrf_token %}
+            <label>Задача</label>
+            {{form.title}}
 
-<div class="card-body">
-    <form method="POST" action="">
-        {% csrf_token %}
-        <label>Задача</label>
-        {{form.title}}
+            <label>Описание</label>
+            {{form.description}}
 
-        <label>Описание</label>
-        {{form.description}}
-
-        <label>Статус выполения</label>
-        {{form.complete}}
-        
+        <div class="task-status">
+            <label style="margin-right: 20px;">Статус выполения</label>
+            {{form.complete}}
+        </div>
         <label></label>
-        <input style="margin-top: 10px;"class="button" type="submit" value="Подтвердить">
-    </form>
+            <input style="margin-top: 10px;"class="button" type="submit" value="Подтвердить">
+        </form>
+    </div>
 </div>
 
 {% endblock content %}
