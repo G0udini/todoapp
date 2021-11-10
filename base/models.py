@@ -16,3 +16,17 @@ class Task(models.Model):
         order_with_respect_to = "user"
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
+
+
+class TickList(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    completed = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Подзачада"
+        verbose_name_plural = "Подзадачи"

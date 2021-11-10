@@ -54,13 +54,19 @@ input {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #fff;
     border-top: 1px solid #dfe4ea;
     overflow: hidden;
-    border-radius: 30px;
     background-color: oldlace;
 }
 
+.task-wrapper:first-child {
+    border-radius: 15px 15px 0 0;
+}
+
+.task-wrapper:last-child {  
+    border-radius: 0 0 15px 15px;
+    border-bottom: 1px solid #dfe4ea;
+}
 .task-title {
     display: flex;
     padding: 20px;
@@ -173,10 +179,6 @@ input#del-button {
   display: block;
   margin-right: auto;
   margin-left: auto;
-}
-
-span#arrow-symb {
-    font-size: 25px;
 }
 
 label {

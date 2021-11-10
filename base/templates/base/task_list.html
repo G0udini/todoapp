@@ -1,8 +1,12 @@
 {% extends 'base/main.html' %}
-
+{% load static %}
 {% block title %}Список задач{% endblock title %}
+
 {% block content %}
+
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<!-- <script src="{% static 'js/base.js' %}""></script> -->
+
 <div class="header-bar">
     <div>
         <h1>{{ request.user|title }}</h1>
@@ -58,8 +62,8 @@
         {% endfor %}
     </div>
 </div>
-<script src="{% static 'js/base.js' %}"></script>
-    <!-- var taskList = document.getElementById("tasklist");
+<script>
+    var taskList = document.getElementById("tasklist");
     var reorderForm = document.getElementById("reorderForm");
     var positionInput = document.getElementById("positionInput");
 
@@ -82,6 +86,6 @@
     }
 
     document.ondrop = reordering
-</script> -->
+</script>
 
 {% endblock content %}
