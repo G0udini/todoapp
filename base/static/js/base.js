@@ -1,23 +1,8 @@
-    var taskList = document.getElementById("tasklist");
-    var reorderForm = document.getElementById("reorderForm");
-    var positionInput = document.getElementById("positionInput");
-
-    let sortable = Sortable.create(taskList, {
+$(document).ready(function () {
+    $('#tasklist').sortable({
         handle: '.handle',
-        ghostClass: 'dropArea',
-        chosenClass: 'selectedTask',
-
+        opacity: 0.7,
+        placeholder: 'placeholder',
+        forcePlaceholderSize: true,
     });
-
-    function reordering() {
-        const rows = document.getElementsByClassName("task-wrapper");
-        let pos = [];
-        for (let row of rows) {
-            pos.push(row.dataset.position);
-        }
-        console.log(pos.join(","))
-        positionInput.value = pos.join(',');
-        reorderForm.submit();
-    }
-
-    document.ondrop = reordering
+});

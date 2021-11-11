@@ -59,6 +59,15 @@ input {
     background-color: oldlace;
 }
 
+.placeholder {
+    background-color:#f1f4f7;
+    visibility: visible;
+}
+
+.ui-sortable-helper {
+    border-radius: 0 !important;
+}
+
 .task-wrapper:first-child {
     border-radius: 15px 15px 0 0;
 }
@@ -136,10 +145,6 @@ input {
     background-color: #f1f2f6;
     color: black;
     border: #ced6e0 1px solid;
-}
-
-.selectedTask {
-    opacity: 0.6;
 }
 
 #add-link {
