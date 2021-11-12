@@ -7,6 +7,7 @@ from .models import Task
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
+from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
 
 from django.db import transaction
 from django.views import View
@@ -82,14 +83,12 @@ class RegisterPage(FormView):
         return super().get(*args, **kwargs)
 
 
-class TaskReorder(View):
+class TaskReorder(CsrfExemptMixin, JsonRequestResponseMixin, View):
     def post(self, request):
-        form = PositionForm(request.POST)
+        try:
+            position = self.request_json
+        except KeyError:
+            return self.render_bad_request_response({"saved": "Canceled"})
 
-        if form.is_valid():
-            positionList = form.cleaned_data["position"].split(",")
-
-            with transaction.atomic():
-                self.request.user.set_task_order(positionList)
-
-        return redirect(reverse_lazy("tasks"))
+        self.request.user.set_task_order(position)
+        return self.render_json_response({"saved": "OK"})
