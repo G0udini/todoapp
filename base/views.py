@@ -1,3 +1,5 @@
+from django.db.models import query
+from django.db.models.query import QuerySet
 from django.shortcuts import redirect
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
@@ -9,9 +11,10 @@ from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
 
+from django.core.paginator import Paginator
+
 from django.db import transaction
 from django.views import View
-from .forms import PositionForm
 
 
 class TaskList(LoginRequiredMixin, ListView):
@@ -19,15 +22,18 @@ class TaskList(LoginRequiredMixin, ListView):
     context_object_name = "tasks"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["tasks"] = context["tasks"].filter(user=self.request.user)
-        context["count"] = context["tasks"].filter(complete=False).count()
-
+        context = {}
+        page_number = self.request.GET.get("page", 1)
         search_input = self.request.GET.get("search-area") or ""
-        if search_input:
-            context["tasks"] = context["tasks"].filter(title__icontains=search_input)
-        context["search_input"] = search_input
+        tasks = Task.objects.filter(user=self.request.user)
 
+        if search_input:
+            tasks = tasks.filter(title__icontains=search_input)
+            context["search_input"] = search_input
+
+        context["count"] = tasks.filter(complete=False).count()
+        paginator = Paginator(tasks, 8)
+        context["tasks"] = paginator.page(page_number)
         return context
 
 
@@ -37,7 +43,6 @@ class TaskCreate(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("tasks")
 
     def form_valid(self, form):
-        print(form)
         form.instance.user = self.request.user
         return super().form_valid(form)
 
