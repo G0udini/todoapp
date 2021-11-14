@@ -1,6 +1,7 @@
 from django.db.models import query
 from django.db.models.query import QuerySet
-from django.shortcuts import redirect
+from django.http.response import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.contrib.auth.views import LoginView
@@ -10,11 +11,40 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
-
-from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from django.db import transaction
 from django.views import View
+
+from django.template.loader import render_to_string
+
+
+# @login_required
+# def task_list(request):
+#     page_number = request.GET.get("page")
+#     search_input = request.GET.get("search-area") or ""
+#     tasks = Task.objects.filter(user=request.user)
+
+#     context = {}
+
+#     if search_input:
+#         tasks = tasks.filter(title__icontains=search_input)
+#         context["search_input"] = search_input
+#     context["count"] = tasks.filter(complete=False).count()
+#     paginator = Paginator(tasks, 15)
+#     try:
+#         context["tasks"] = paginator.page(page_number)
+#     except PageNotAnInteger:
+#         context["tasks"] = paginator.page(1)
+#     except EmptyPage:
+#         if request.is_ajax():
+#             return HttpResponse("")
+#         context["tasks"] = paginator.page(paginator.num_pages)
+#     if request.is_ajax():
+#         return render(request, "templates/base/task_list.html", context)
+
+#     return render()
 
 
 class TaskList(LoginRequiredMixin, ListView):
@@ -23,7 +53,7 @@ class TaskList(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = {}
-        page_number = self.request.GET.get("page", 1)
+        page_number = self.request.GET.get("page")
         search_input = self.request.GET.get("search-area") or ""
         tasks = Task.objects.filter(user=self.request.user)
 
@@ -32,9 +62,27 @@ class TaskList(LoginRequiredMixin, ListView):
             context["search_input"] = search_input
 
         context["count"] = tasks.filter(complete=False).count()
-        paginator = Paginator(tasks, 8)
-        context["tasks"] = paginator.page(page_number)
+        paginator = Paginator(tasks, 10)
+        context["page_limit"] = paginator.num_pages
+        try:
+            context["tasks"] = paginator.page(page_number)
+        except PageNotAnInteger:
+            context["tasks"] = paginator.page(1)
+        except EmptyPage:
+            if self.request.is_ajax():
+                return {}
+
+        if self.request.is_ajax():
+            context["tasks"] = list(
+                context["tasks"].object_list.values("id", "title", "complete")
+            )
         return context
+
+    def get_template_names(self):
+        if self.request.is_ajax():
+            return "base/task_list_ajax.html"
+        else:
+            return "base/task_list.html"
 
 
 class TaskCreate(LoginRequiredMixin, CreateView):

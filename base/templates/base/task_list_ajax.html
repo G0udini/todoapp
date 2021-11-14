@@ -1,0 +1,17 @@
+{% for task in tasks %}
+    <div class="task-wrapper" data-position="{{task.pk}}">
+        <div class="task-title">
+            {% if task.complete %}
+                <div class="task-complete-icon"></div>
+                <s><a href="{% url 'task-update' task.id %}">{{task.title}}</a></s> 
+            {% else %}
+                <div class="task-incomplete-icon"></div>
+                <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
+            {% endif %}
+        </div>
+        <div class="task-controls">
+            <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
+            <span class="handle">&nbsp;&#10247;</span>
+        </div>
+    </div>
+{% endfor %}

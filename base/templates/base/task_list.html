@@ -72,15 +72,39 @@ $(document).ready(function () {
                 task_order.push(row.dataset.position);
             }
             $.ajax({
-                type: 'POST',
-                url: '{% url "task-reorder" %}',
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
+                type: "POST",
+                url: "{% url 'task-reorder' %}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
                 data: JSON.stringify(task_order)
             });
         }
     });
-});
+});        
+</script>
+
+<script>
+let page_num = 1;
+
+$(window).scroll(function() {
+    var margin = $(document).height() - $(window).height() - 200;
+    if ($(window).scrollTop() > margin && page_num < {{ page_limit }}) {
+        $.ajax({
+            type: "GET",
+            url: "{% url 'tasks' %}",
+            data: {page: ++page_num},
+            dataType: "html",
+            success: function (data) {
+                $("#tasklist").append(data).html()
+            },
+            //error: function (xhr, status) {
+              //  alert("Sorry, there was a problem!");
+            //},
+            //complete: function (xhr, status) {
+                //$('#').slideDown('slow')
+            });
+        }
+    });
 </script>
 
 {% endblock content %}
