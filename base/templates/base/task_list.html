@@ -33,7 +33,7 @@
     </div>
     <div id="tasklist" class="task-items-wrapper">
         {% for task in tasks %}
-        <div class="task-wrapper" data-position="{{task.pk}}">
+        <div class="task-wrapper" data-position="{{task.id}}">
             <div class="task-title">
                 {% if task.complete %}
                     <div class="task-complete-icon"></div>
@@ -84,24 +84,22 @@ $(document).ready(function () {
 </script>
 
 <script>
-let page_num = 1;
+let page_num = {{ page_number }};
+let block_request = false
 
 $(window).scroll(function() {
-    var margin = $(document).height() - $(window).height() - 200;
-    if ($(window).scrollTop() > margin && page_num < {{ page_limit }}) {
+    var margin = ($(document).height() - $(window).height()) - 200;
+    if ($(window).scrollTop() >= margin && page_num < {{ page_limit }} && block_request == false) {
+        block_request = true;
         $.ajax({
             type: "GET",
             url: "{% url 'tasks' %}",
             data: {page: ++page_num},
             dataType: "html",
             success: function (data) {
+                block_request = false;
                 $("#tasklist").append(data).html()
-            },
-            //error: function (xhr, status) {
-              //  alert("Sorry, there was a problem!");
-            //},
-            //complete: function (xhr, status) {
-                //$('#').slideDown('slow')
+            }
             });
         }
     });

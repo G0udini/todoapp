@@ -66,8 +66,10 @@ class TaskList(LoginRequiredMixin, ListView):
         context["page_limit"] = paginator.num_pages
         try:
             context["tasks"] = paginator.page(page_number)
+            context["page_number"] = page_number
         except PageNotAnInteger:
             context["tasks"] = paginator.page(1)
+            context["page_number"] = 1
         except EmptyPage:
             if self.request.is_ajax():
                 return {}
