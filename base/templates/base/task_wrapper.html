@@ -3,7 +3,7 @@
         <div class="task-title">
             {% if task.complete %}
                 <div class="task-complete-icon"></div>
-                <s><a href="{% url 'task-update' task.id %}">{{task.title}}</a></s> 
+                <a class="complete-cross" href="{% url 'task-update' task.id %}">{{task.title}}</a>
             {% else %}
                 <div class="task-incomplete-icon"></div>
                 <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
@@ -13,5 +13,10 @@
             <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
             <span class="handle">&nbsp;&#10247;</span>
         </div>
+    </div>
+{% empty %}
+    <div style="text-align: center; padding-bottom: 10px; line-height: 1em;">
+        <h3>У вас нету активных задач.</h3>
+        <h3>Хотите создать <a style="text-decoration: none; color: #e53935;" href="{% url 'task-create' %}">Новое задание</a> ! </h3>
     </div>
 {% endfor %}

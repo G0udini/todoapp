@@ -7,6 +7,7 @@ from .views import (
     CustromLogin,
     RegisterPage,
     TaskReorder,
+    TaskComplete,
 )
 from django.contrib.auth.views import LogoutView
 
@@ -19,4 +20,5 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("register/", RegisterPage.as_view(), name="register"),
     path("task-reorder/", TaskReorder.as_view(), name="task-reorder"),
+    path("task-complete/", TaskComplete.as_view(), name="task-complete"),
 ]

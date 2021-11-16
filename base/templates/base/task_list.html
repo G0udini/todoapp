@@ -11,7 +11,7 @@
 <div class="header-bar">
     <div>
         <h1>{{ request.user|title }}</h1>
-        <h3 style="margin:0">Колличество незаконченных задач: {{ count }}</h3>
+        <h3 style="margin:0">Количество незаконченных задач: {{ count }}</h3>
     </div>
 
     {% if request.user.is_authenticated %}
@@ -32,29 +32,7 @@
         {% endif %}
     </div>
     <div id="tasklist" class="task-items-wrapper">
-        {% for task in tasks %}
-        <div class="task-wrapper" data-position="{{task.id}}">
-            <div class="task-title">
-                {% if task.complete %}
-                    <div class="task-complete-icon"></div>
-                    <s><a href="{% url 'task-update' task.id %}">{{task.title}}</a></s> 
-                {% else %}
-                    <div class="task-incomplete-icon"></div>
-                    <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
-                {% endif %}
-            </div>
-            <div class="task-controls">
-                <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
-                <span class="handle">&nbsp;&#10247;</span>
-            </div>
-        </div>
-
-        {% empty %}
-        <div style="text-align: center; padding-bottom: 10px; line-height: 1em;">
-            <h3>У вас нету активных задач.</h3>
-            <h3>Хотите создать <a style="text-decoration: none; color: #e53935;" href="{% url 'task-create' %}">Новое задание</a> ! </h3>
-        </div>
-        {% endfor %}
+        {% include 'base/task_wrapper.html' %}
     </div>
 </div>
 
@@ -66,6 +44,7 @@ $(document).ready(function () {
         placeholder: 'placeholder',
         forcePlaceholderSize: true,
         stop: function (event, ui) {
+            task_change = [];
             let rows = document.getElementsByClassName("task-wrapper");
             let task_order = [];
             for (let row of rows) {
@@ -85,7 +64,8 @@ $(document).ready(function () {
 
 <script>
 let page_num = {{ page_number }};
-let block_request = false
+let block_request = false;
+const urlSearch = new URLSearchParams(window.location.search).get('search-area') || "";
 
 $(window).scroll(function() {
     var margin = ($(document).height() - $(window).height()) - 200;
@@ -94,15 +74,40 @@ $(window).scroll(function() {
         $.ajax({
             type: "GET",
             url: "{% url 'tasks' %}",
-            data: {page: ++page_num},
             dataType: "html",
+            data: {'search-area': urlSearch, page: ++page_num},
             success: function (data) {
                 block_request = false;
                 $("#tasklist").append(data).html()
             }
-            });
+        });
+    }
+});
+</script>
+
+<script>
+$(document).ready(function () {
+    $('.task-incomplete-icon, .task-complete-icon').click(function () {
+        let element_class = $(this).attr('class')
+        let task_id = this.closest(".task-wrapper").dataset.position;
+        if (element_class == 'task-incomplete-icon') {
+            $(this).addClass('task-complete-icon');
+            $(this).removeClass('task-incomplete-icon');
+            $(this).next().addClass('complete-cross');
+        } else {
+            $(this).addClass('task-incomplete-icon');
+            $(this).removeClass('task-complete-icon');
+            $(this).next().removeClass('complete-cross');
         }
+        $.ajax({ 
+            type: 'POST',
+            url: '{% url "task-complete" %}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(task_id),
+        });
     });
+});
 </script>
 
 {% endblock content %}

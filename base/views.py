@@ -1,50 +1,16 @@
-from django.db.models import query
-from django.db.models.query import QuerySet
-from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
+from django.views import View
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from .models import Task
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
-from django.db import transaction
-from django.views import View
-
-from django.template.loader import render_to_string
-
-
-# @login_required
-# def task_list(request):
-#     page_number = request.GET.get("page")
-#     search_input = request.GET.get("search-area") or ""
-#     tasks = Task.objects.filter(user=request.user)
-
-#     context = {}
-
-#     if search_input:
-#         tasks = tasks.filter(title__icontains=search_input)
-#         context["search_input"] = search_input
-#     context["count"] = tasks.filter(complete=False).count()
-#     paginator = Paginator(tasks, 15)
-#     try:
-#         context["tasks"] = paginator.page(page_number)
-#     except PageNotAnInteger:
-#         context["tasks"] = paginator.page(1)
-#     except EmptyPage:
-#         if request.is_ajax():
-#             return HttpResponse("")
-#         context["tasks"] = paginator.page(paginator.num_pages)
-#     if request.is_ajax():
-#         return render(request, "templates/base/task_list.html", context)
-
-#     return render()
+from .models import Task
+from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
 
 
 class TaskList(LoginRequiredMixin, ListView):
@@ -55,8 +21,9 @@ class TaskList(LoginRequiredMixin, ListView):
         context = {}
         page_number = self.request.GET.get("page")
         search_input = self.request.GET.get("search-area") or ""
-        tasks = Task.objects.filter(user=self.request.user)
-
+        tasks = Task.objects.filter(user=self.request.user).values(
+            "id", "title", "complete"
+        )
         if search_input:
             tasks = tasks.filter(title__icontains=search_input)
             context["search_input"] = search_input
@@ -71,20 +38,14 @@ class TaskList(LoginRequiredMixin, ListView):
             context["tasks"] = paginator.page(1)
             context["page_number"] = 1
         except EmptyPage:
-            if self.request.is_ajax():
-                return {}
-
-        if self.request.is_ajax():
-            context["tasks"] = list(
-                context["tasks"].object_list.values("id", "title", "complete")
-            )
+            context["tasks"] = paginator.page(paginator.num_pages)
+            context["page_number"] = paginator.num_pages
         return context
 
     def get_template_names(self):
         if self.request.is_ajax():
-            return "base/task_list_ajax.html"
-        else:
-            return "base/task_list.html"
+            return "base/task_wrapper.html"
+        return "base/task_list.html"
 
 
 class TaskCreate(LoginRequiredMixin, CreateView):
@@ -143,7 +104,19 @@ class TaskReorder(CsrfExemptMixin, JsonRequestResponseMixin, View):
         try:
             position = self.request_json
         except KeyError:
-            return self.render_bad_request_response({"saved": "Canceled"})
+            return self.render_bad_request_response({"status": "Canceled"})
 
         self.request.user.set_task_order(position)
-        return self.render_json_response({"saved": "OK"})
+        return self.render_json_response({"status": "OK"})
+
+
+class TaskComplete(CsrfExemptMixin, JsonRequestResponseMixin, View):
+    def post(self, request):
+        try:
+            task_id = self.request_json
+        except KeyError:
+            return self.render_bad_request_response({"status": "Not saved"})
+        task = Task.objects.get(id=task_id)
+        task.complete = not task.complete
+        task.save()
+        return self.render_json_response({"status": "OK"})
