@@ -9,6 +9,9 @@
                 <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
             {% endif %}
         </div>
+            {% if task.tickspers %}
+                <p>{{ task.tickspers }}</p>
+            {% endif %} 
         <div class="task-controls">
             <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
             <span class="handle">&nbsp;&#10247;</span>

@@ -8,6 +8,8 @@ class Task(models.Model):
     description = models.TextField(blank=True)
     complete = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+    number_of_ticks = models.IntegerField(blank=True, default=0)
+    done_ticks = models.IntegerField(blank=True, default=0)
 
     def __str__(self):
         return self.title
@@ -19,7 +21,7 @@ class Task(models.Model):
 
 
 class TickList(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="ticklist")
     title = models.CharField(max_length=200)
     completed = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)

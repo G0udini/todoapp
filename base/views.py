@@ -1,3 +1,4 @@
+from django.db.models import F, ExpressionWrapper, FloatField
 from django.shortcuts import redirect
 from django.views import View
 from django.views.generic.list import ListView
@@ -10,7 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from .models import Task
-from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
+from braces.views import JsonRequestResponseMixin
 
 
 class TaskList(LoginRequiredMixin, ListView):
@@ -21,14 +22,17 @@ class TaskList(LoginRequiredMixin, ListView):
         context = {}
         page_number = self.request.GET.get("page")
         search_input = self.request.GET.get("search-area") or ""
-        tasks = Task.objects.filter(user=self.request.user).values(
-            "id", "title", "complete"
-        )
+        tasks = Task.objects.filter(user=self.request.user)
         if search_input:
             tasks = tasks.filter(title__icontains=search_input)
             context["search_input"] = search_input
 
         context["count"] = tasks.filter(complete=False).count()
+        tasks = tasks.annotate(
+            tickspers=ExpressionWrapper(
+                F("done_ticks") * 1.0 / F("number_of_ticks"), output_field=FloatField()
+            )
+        ).values("id", "title", "complete", "tickspers")
         paginator = Paginator(tasks, 10)
         context["page_limit"] = paginator.num_pages
         try:
@@ -99,7 +103,7 @@ class RegisterPage(FormView):
         return super().get(*args, **kwargs)
 
 
-class TaskReorder(CsrfExemptMixin, JsonRequestResponseMixin, View):
+class TaskReorder(JsonRequestResponseMixin, View):
     def post(self, request):
         try:
             position = self.request_json
@@ -110,7 +114,7 @@ class TaskReorder(CsrfExemptMixin, JsonRequestResponseMixin, View):
         return self.render_json_response({"status": "OK"})
 
 
-class TaskComplete(CsrfExemptMixin, JsonRequestResponseMixin, View):
+class TaskComplete(JsonRequestResponseMixin, View):
     def post(self, request):
         try:
             task_id = self.request_json

@@ -7,11 +7,12 @@
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
 
 <div class="header-bar">
     <div>
         <h1>{{ request.user|title }}</h1>
-        <h3 style="margin:0">Количество незаконченных задач: {{ count }}</h3>
+        <h3 style="margin:0">Количество незаконченных задач: <div class="uncomplete-count">{{ count }}</div></h3>
     </div>
 
     {% if request.user.is_authenticated %}
@@ -51,6 +52,7 @@ $(document).ready(function () {
                 task_order.push(row.dataset.position);
             }
             $.ajax({
+                headers: {'X-CSRFToken': Cookies.get('csrftoken')},
                 type: "POST",
                 url: "{% url 'task-reorder' %}",
                 contentType: "application/json; charset=utf-8",
@@ -87,6 +89,7 @@ $(window).scroll(function() {
 
 <script>
 $(document).ready(function () {
+    let uncomplete_count = {{ count }}
     $('.task-incomplete-icon, .task-complete-icon').click(function () {
         let element_class = $(this).attr('class')
         let task_id = this.closest(".task-wrapper").dataset.position;
@@ -94,12 +97,16 @@ $(document).ready(function () {
             $(this).addClass('task-complete-icon');
             $(this).removeClass('task-incomplete-icon');
             $(this).next().addClass('complete-cross');
+            $('.uncomplete-count').text(--uncomplete_count);
+            
         } else {
             $(this).addClass('task-incomplete-icon');
             $(this).removeClass('task-complete-icon');
             $(this).next().removeClass('complete-cross');
+            $('.uncomplete-count').text(++uncomplete_count);
         }
-        $.ajax({ 
+        $.ajax({
+            headers: {'X-CSRFToken': Cookies.get('csrftoken')},
             type: 'POST',
             url: '{% url "task-complete" %}',
             contentType: "application/json; charset=utf-8",

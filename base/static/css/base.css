@@ -41,6 +41,10 @@ input {
     text-decoration: none;
 }
 
+.uncomplete-count {
+    display: inline;
+}
+
 .container-body {
     padding: 15px;
     -webkit-box-shadow: 2px 2px 13px -4px rgba(0,0,0,0.21);
@@ -184,6 +188,7 @@ textarea {
     border-radius: 10px;
     padding: 10px;
     width: 90%;
+    max-width: 90%;
 }
 
 input#search-field {
@@ -210,8 +215,8 @@ label {
 
 .button {
     border: 1px solid #757575;
-    background-color: #FFF;
-    color: #EB796F;
+    background-color: rgb(252, 226, 188);
+    color: #c4463b;
     padding: 10px;
     font-size: 16px;
     border-radius: 10px;
