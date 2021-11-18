@@ -1,4 +1,4 @@
-from django.db.models import F, ExpressionWrapper, FloatField
+from django.db.models import F
 from django.shortcuts import redirect
 from django.views import View
 from django.views.generic.list import ListView
@@ -29,10 +29,10 @@ class TaskList(LoginRequiredMixin, ListView):
 
         context["count"] = tasks.filter(complete=False).count()
         tasks = tasks.annotate(
-            tickspers=ExpressionWrapper(
-                F("done_ticks") * 1.0 / F("number_of_ticks"), output_field=FloatField()
-            )
-        ).values("id", "title", "complete", "tickspers")
+            tickspers=F("done_ticks") * 100 / F("number_of_ticks")
+        ).values(
+            "id", "title", "complete", "tickspers", "done_ticks", "number_of_ticks"
+        )
         paginator = Paginator(tasks, 10)
         context["page_limit"] = paginator.num_pages
         try:
@@ -74,7 +74,7 @@ class TaskDelete(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy("tasks")
 
 
-class CustromLogin(LoginView):
+class CustomLogin(LoginView):
     template_name = "base/login.html"
     fields = "__all__"
     redirect_authenticated_user = True

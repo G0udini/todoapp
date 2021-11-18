@@ -1,21 +1,25 @@
 {% for task in tasks %}
     <div class="task-wrapper" data-position="{{ task.id }}">
-        <div class="task-title">
-            {% if task.complete %}
-                <div class="task-complete-icon"></div>
-                <a class="complete-cross" href="{% url 'task-update' task.id %}">{{task.title}}</a>
-            {% else %}
-                <div class="task-incomplete-icon"></div>
-                <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
-            {% endif %}
-        </div>
+            <div class="task-title">
+                {% if task.complete %}
+                    <div class="task-complete-icon"></div>
+                    <a class="complete-cross" href="{% url 'task-update' task.id %}">{{task.title}}</a>
+                {% else %}
+                    <div class="task-incomplete-icon"></div>
+                    <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
+                {% endif %}
+            </div>
+            <div class="task-controls">
+                {% if task.number_of_ticks %}
+                    <span class="ticklist">{{ task.done_ticks }} / {{ task.number_of_ticks }}</span>
+                {% endif %}
+                <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
+                <span class="handle">&nbsp;&#10247;</span>
+            </div>
             {% if task.tickspers %}
-                <p>{{ task.tickspers }}</p>
-            {% endif %} 
-        <div class="task-controls">
-            <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
-            <span class="handle">&nbsp;&#10247;</span>
-        </div>
+                <div class="tickline" style="background-color: #EEA390;"></div>
+                <div class="tickline" style="width: {{ task.tickspers }}%; {% if task.tickspers != 100 %} border-radius: 0 5px 10px 0; {% endif %}"></div>
+            {% endif %}
     </div>
 {% empty %}
     <div style="text-align: center; padding-bottom: 10px; line-height: 1em;">

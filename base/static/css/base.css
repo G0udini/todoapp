@@ -15,7 +15,7 @@ a {
 }
 
 .container {
-    max-width: 700px;
+    max-width: 800px;
     margin: auto;
     
 }
@@ -34,6 +34,7 @@ input {
     background: linear-gradient(90deg, #EEA390 0%, #EB796F 50%, #EB796F 100%);
     -webkit-box-shadow: 2px 2px 13px -4px rgba(0,0,0,0.21);
     box-shadow: 2px 2px 13px -4px rgba(0,0,0,0.21);
+    font-size: 18px;
 }
 
 .header-bar a {
@@ -55,13 +56,28 @@ input {
 }
 
 .task-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     border-top: 1px solid #dfe4ea;
     overflow: hidden;
     background-color: oldlace;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 70px;
+    position: relative;
+    
 }
+
+.tickline {
+    height: 10px;
+    width: 100%;
+    background-color: #eb695d;
+    display: block;
+    position: absolute;
+    content: "";
+    top: 90%;
+}
+
 
 .placeholder {
     background-color:#f1f4f7;
@@ -88,7 +104,7 @@ a.complete-cross {
 
 .task-title {
     display: flex;
-    padding: 20px;
+    padding: 21px;
     align-items: center;
 }
 
@@ -100,9 +116,9 @@ a.complete-cross {
 
 
 .task-complete-icon {
-    min-width: 20px;
-    height: 20px;
-    width: 20px;
+    min-width: 26px;
+    height: 26px;
+    width: 26px;
     background-color: rgb(137, 192, 137);
     border-radius: 50%;
     cursor: pointer;
@@ -110,9 +126,9 @@ a.complete-cross {
 
 
 .task-incomplete-icon {
-    min-width: 20px;
-    height: 20px;
-    width: 20px;
+    min-width: 25px;
+    height: 25px;
+    width: 25px;
     background-color: rgb(184, 183, 183);
     border-radius: 50%;
     cursor: pointer;
@@ -125,21 +141,30 @@ a.complete-cross {
     flex-wrap: nowrap;
     align-content: center;
     justify-content: center;
-    align-items: baseline;
+    align-items: center;
+
+}
+
+.ticklist {
+    display: inline-block;
+    padding: 22px 16px;
+    color:rgb(138, 136, 136);
+    font-size: 18px;
 }
 
 .delete-link {
+    display: inline-block;
     text-decoration: none;
     font-weight: 900;
     color: #EB796F;
-    font-size: 22px;
+    font-size: 30px;
     line-height: 0;
     padding: 20px 0px;
 }
 
 .handle {
     display: inline-block;
-    padding: 20px 16px;
+    padding: 22px 16px 19px;
     cursor: grab;
     user-select: none;
 }
@@ -165,7 +190,7 @@ a.complete-cross {
 #add-link {
     color: #EB796F;
     text-decoration: none;
-    font-size: 42px;
+    font-size: 48px;
 }
 
 #search-add-wrapper {
@@ -189,11 +214,13 @@ textarea {
     padding: 10px;
     width: 90%;
     max-width: 90%;
+    font-size: 18px;
 }
 
 input#search-field {
-    width: 350px;
+    width: 450px;
     margin-right: 10px;
+    font-size: 20px;
 }
 
 input#del-button {
@@ -205,7 +232,7 @@ input#del-button {
 label {
     padding: 20px 0 5px 10px !important;
     display: block;
-    font-size: 18px;
+    font-size: 20px;
 }
 
 ::placeholder {
@@ -218,7 +245,7 @@ label {
     background-color: rgb(252, 226, 188);
     color: #c4463b;
     padding: 10px;
-    font-size: 16px;
+    font-size: 18px;
     border-radius: 10px;
     cursor: pointer;
     text-decoration: none;
