@@ -217,6 +217,11 @@ textarea {
     font-size: 18px;
 }
 
+input[type=checkbox]{
+  height: 20px;
+  width: 20px;
+}
+
 input#search-field {
     width: 450px;
     margin-right: 10px;
@@ -268,4 +273,26 @@ label {
 
 .card-body {
     padding: 10px;
+    font-size: 20px;
+    color: #e53935;
+}
+
+.tick-forms label {
+    display: none;
+}
+
+#add-form {
+    color:red;
+    font-weight:600;
+    cursor: pointer;
+    user-select: none;
+}
+.tick-form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 20px 30px 20px 0;
+    align-items: center;
+    justify-content: flex-start;
 }

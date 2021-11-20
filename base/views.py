@@ -1,8 +1,9 @@
 from django.db.models import F
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.views import View
+from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
+from django.views.generic.edit import UpdateView, DeleteView, FormView
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
@@ -11,6 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from .models import Task
+from .forms import TaskForm, TickListFormSet
 from braces.views import JsonRequestResponseMixin
 
 
@@ -52,14 +54,39 @@ class TaskList(LoginRequiredMixin, ListView):
         return "base/task_list.html"
 
 
-class TaskCreate(LoginRequiredMixin, CreateView):
-    model = Task
-    fields = ["title", "description", "complete"]
-    success_url = reverse_lazy("tasks")
+class TaskCreate(LoginRequiredMixin, View):
+    template_name = "base/task_form.html"
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+    def get(self, request, *args, **kwargs):
+        context = {
+            "ticklist_form": TickListFormSet(),
+            "task_form": TaskForm(),
+        }
+        print(TickListFormSet().empty_form)
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        task_form = TaskForm(request.POST)
+        formset = TickListFormSet(request.POST)
+        number_of_ticks = formset.total_form_count()
+        if task_form.is_valid():
+            task = task_form.save(commit=False)
+            task.user = request.user
+            task.number_of_ticks = number_of_ticks
+            if formset.is_valid():
+
+                done_ticks = sum(
+                    1 for tick in formset if tick.cleaned_data.get("completed")
+                )
+                task.done_ticks = done_ticks
+                task.save()
+
+                for tick_form in formset:
+                    tick = tick_form.save(commit=False)
+                    tick.task = task
+                    tick.save()
+
+        return redirect("tasks")
 
 
 class TaskUpdate(LoginRequiredMixin, UpdateView):
