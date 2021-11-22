@@ -3,7 +3,13 @@
 {% block title %}Новая задачая{% endblock title %}
 
 {% block content %}
-
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 <div class="header-bar">
     <a href="{% url 'tasks' %}"> <span id="arrow-symb">&#8592;</span>Назад</a>
 </div>

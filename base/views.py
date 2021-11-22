@@ -1,17 +1,20 @@
 from django.db.models import F
-from django.shortcuts import redirect, render
+from django.db.models.query import QuerySet
+from django.http.response import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView, DeleteView, FormView
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
+from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
-from .models import Task
+from .models import Task, TickList
 from .forms import TaskForm, TickListFormSet
 from braces.views import JsonRequestResponseMixin
 
@@ -58,15 +61,29 @@ class TaskCreate(LoginRequiredMixin, View):
     template_name = "base/task_form.html"
 
     def get(self, request, *args, **kwargs):
+        task = None
+        ticklist = None
+        if kwargs.get("pk"):
+            key = kwargs.get("pk")
+            task = get_object_or_404(Task.objects.prefetch_related("ticklist"), id=key)
+            ticklist = [
+                {
+                    "title": val.title,
+                    "completed": val.completed,
+                }
+                for key, val in enumerate(task.ticklist.all())
+            ]
         context = {
-            "ticklist_form": TickListFormSet(),
-            "task_form": TaskForm(),
+            "ticklist_form": TickListFormSet(initial=ticklist),
+            "task_form": TaskForm(instance=task),
         }
-        print(TickListFormSet().empty_form)
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        task_form = TaskForm(request.POST)
+        task_instance = None
+        if kwargs.get("pk"):
+            task_instance = Task.objects.get(id=kwargs.get("pk"))
+        task_form = TaskForm(request.POST, instance=task_instance)
         formset = TickListFormSet(request.POST)
         number_of_ticks = formset.total_form_count()
         if task_form.is_valid():
@@ -74,17 +91,25 @@ class TaskCreate(LoginRequiredMixin, View):
             task.user = request.user
             task.number_of_ticks = number_of_ticks
             if formset.is_valid():
+                done_ticks, cnt_ticks = 0, 0
+                for tick in formset:
+                    if tick.cleaned_data.get("title"):
+                        cnt_ticks += 1
+                        if tick.cleaned_data.get("completed"):
+                            done_ticks += 1
 
-                done_ticks = sum(
-                    1 for tick in formset if tick.cleaned_data.get("completed")
-                )
                 task.done_ticks = done_ticks
+                task.number_of_ticks = cnt_ticks
                 task.save()
 
                 for tick_form in formset:
-                    tick = tick_form.save(commit=False)
-                    tick.task = task
-                    tick.save()
+                    if tick_form.cleaned_data.get("title"):
+                        tick = tick_form.save(commit=False)
+                        tick.task = task
+                        tick.save()
+            else:
+                messages.error(request, "Ошибка при подтверждении подзадачи")
+                return redirect("task-create")
 
         return redirect("tasks")
 
