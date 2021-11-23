@@ -24,6 +24,7 @@ class TaskList(LoginRequiredMixin, ListView):
         page_number = self.request.GET.get("page")
         search_input = self.request.GET.get("search-area") or ""
         tasks = Task.objects.filter(user=self.request.user)
+
         if search_input:
             tasks = tasks.filter(title__icontains=search_input)
             context["search_input"] = search_input
@@ -34,8 +35,18 @@ class TaskList(LoginRequiredMixin, ListView):
         ).values(
             "id", "title", "complete", "tickspers", "done_ticks", "number_of_ticks"
         )
+
         paginator = Paginator(tasks, 10)
         context["page_limit"] = paginator.num_pages
+        self.validate_page(context, paginator, page_number)
+        return context
+
+    def get_template_names(self):
+        if self.request.is_ajax():
+            return "base/task_wrapper.html"
+        return "base/task_list.html"
+
+    def validate_page(self, context, paginator, page_number):
         try:
             context["tasks"] = paginator.page(page_number)
             context["page_number"] = page_number
@@ -45,12 +56,6 @@ class TaskList(LoginRequiredMixin, ListView):
         except EmptyPage:
             context["tasks"] = paginator.page(paginator.num_pages)
             context["page_number"] = paginator.num_pages
-        return context
-
-    def get_template_names(self):
-        if self.request.is_ajax():
-            return "base/task_wrapper.html"
-        return "base/task_list.html"
 
 
 class TaskCreateUpdate(LoginRequiredMixin, View):
@@ -60,7 +65,9 @@ class TaskCreateUpdate(LoginRequiredMixin, View):
         task = None
         if kwargs.get("pk"):
             key = kwargs.get("pk")
-            task = get_object_or_404(Task.objects.prefetch_related("ticklist"), id=key)
+            task = get_object_or_404(
+                Task.objects.prefetch_related("ticklist"), id=key, user=request.user
+            )
         context = {
             "ticklist_form": TickListInlineFormSet(instance=task),
             "task_form": TaskForm(instance=task),
@@ -77,31 +84,35 @@ class TaskCreateUpdate(LoginRequiredMixin, View):
             task.user = request.user
             formset = TickListInlineFormSet(request.POST, instance=task)
             if formset.is_valid():
-                done_ticks, cnt_ticks = 0, 0
-                for tick in formset:
-                    if tick.cleaned_data.get("title"):
-                        cnt_ticks += 1
-                        if tick.cleaned_data.get("completed"):
-                            done_ticks += 1
-
-                task.done_ticks = done_ticks
-                task.number_of_ticks = cnt_ticks
+                self.calculate_ticks_number(task, formset)
                 task.save()
+                self.check_formset(task, formset)
 
-                deletion = []
-                for tick_form in formset:
-                    if tick_form.cleaned_data.get("title"):
-                        tick = tick_form.save(commit=False)
-                        tick.task = task
-                        tick.save()
-                    else:
-                        tick = tick_form.cleaned_data.get("id")
-                        if tick:
-                            deletion.append(tick.id)
-                if deletion:
-                    TickList.objects.filter(id__in=deletion).delete()
-                    
         return redirect("tasks")
+
+    def calculate_ticks_number(self, task, formset):
+        done_ticks, cnt_ticks = 0, 0
+        for tick in formset:
+            if tick.cleaned_data.get("title"):
+                cnt_ticks += 1
+                if tick.cleaned_data.get("completed"):
+                    done_ticks += 1
+        task.done_ticks = done_ticks
+        task.number_of_ticks = cnt_ticks
+
+    def check_formset(self, task, formset):
+        deletion = []
+        for tick_form in formset:
+            if tick_form.cleaned_data.get("title"):
+                tick = tick_form.save(commit=False)
+                tick.task = task
+                tick.save()
+            else:
+                tick = tick_form.cleaned_data.get("id")
+                if tick:
+                    deletion.append(tick.id)
+        if deletion:
+            TickList.objects.filter(id__in=deletion).delete()
 
 
 class TaskDelete(LoginRequiredMixin, DeleteView):
