@@ -1,14 +1,15 @@
-from django.forms import ModelForm, formset_factory
+from django.forms import ModelForm
+from django.forms.models import inlineformset_factory
 from .models import TickList, Task
 
 
 class TickListForm(ModelForm):
     class Meta:
         model = TickList
-        fields = ["title", "completed"]
+        fields = ["id", "title", "completed"]
 
 
-TickListFormSet = formset_factory(TickListForm, extra=1)
+TickListInlineFormSet = inlineformset_factory(Task, TickList, TickListForm, extra=1)
 
 
 class TaskForm(ModelForm):

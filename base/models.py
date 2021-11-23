@@ -22,7 +22,7 @@ class Task(models.Model):
 
 class TickList(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="ticklist")
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, blank=True)
     completed = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
 

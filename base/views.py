@@ -1,21 +1,17 @@
 from django.db.models import F
-from django.db.models.query import QuerySet
-from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
-from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
-from django.views.generic.edit import UpdateView, DeleteView, FormView
+from django.views.generic.edit import DeleteView, FormView
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from .models import Task, TickList
-from .forms import TaskForm, TickListFormSet
+from .forms import TaskForm, TickListInlineFormSet
 from braces.views import JsonRequestResponseMixin
 
 
@@ -57,24 +53,16 @@ class TaskList(LoginRequiredMixin, ListView):
         return "base/task_list.html"
 
 
-class TaskCreate(LoginRequiredMixin, View):
+class TaskCreateUpdate(LoginRequiredMixin, View):
     template_name = "base/task_form.html"
 
     def get(self, request, *args, **kwargs):
         task = None
-        ticklist = None
         if kwargs.get("pk"):
             key = kwargs.get("pk")
             task = get_object_or_404(Task.objects.prefetch_related("ticklist"), id=key)
-            ticklist = [
-                {
-                    "title": val.title,
-                    "completed": val.completed,
-                }
-                for key, val in enumerate(task.ticklist.all())
-            ]
         context = {
-            "ticklist_form": TickListFormSet(initial=ticklist),
+            "ticklist_form": TickListInlineFormSet(instance=task),
             "task_form": TaskForm(instance=task),
         }
         return render(request, self.template_name, context)
@@ -84,12 +72,10 @@ class TaskCreate(LoginRequiredMixin, View):
         if kwargs.get("pk"):
             task_instance = Task.objects.get(id=kwargs.get("pk"))
         task_form = TaskForm(request.POST, instance=task_instance)
-        formset = TickListFormSet(request.POST)
-        number_of_ticks = formset.total_form_count()
         if task_form.is_valid():
             task = task_form.save(commit=False)
             task.user = request.user
-            task.number_of_ticks = number_of_ticks
+            formset = TickListInlineFormSet(request.POST, instance=task)
             if formset.is_valid():
                 done_ticks, cnt_ticks = 0, 0
                 for tick in formset:
@@ -102,22 +88,20 @@ class TaskCreate(LoginRequiredMixin, View):
                 task.number_of_ticks = cnt_ticks
                 task.save()
 
+                deletion = []
                 for tick_form in formset:
                     if tick_form.cleaned_data.get("title"):
                         tick = tick_form.save(commit=False)
                         tick.task = task
                         tick.save()
-            else:
-                messages.error(request, "Ошибка при подтверждении подзадачи")
-                return redirect("task-create")
-
+                    else:
+                        tick = tick_form.cleaned_data.get("id")
+                        if tick:
+                            deletion.append(tick.id)
+                if deletion:
+                    TickList.objects.filter(id__in=deletion).delete()
+                    
         return redirect("tasks")
-
-
-class TaskUpdate(LoginRequiredMixin, UpdateView):
-    model = Task
-    fields = ["title", "description", "complete"]
-    success_url = reverse_lazy("tasks")
 
 
 class TaskDelete(LoginRequiredMixin, DeleteView):
