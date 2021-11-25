@@ -3,11 +3,19 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic.list import ListView
 from django.views.generic.edit import DeleteView, FormView
-from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import (
+    LoginView,
+    PasswordChangeDoneView,
+    PasswordChangeView,
+    PasswordResetView,
+    PasswordResetDoneView,
+    PasswordResetCompleteView,
+    PasswordResetConfirmView,
+)
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from .models import Task, TickList
@@ -171,3 +179,30 @@ class TaskComplete(JsonRequestResponseMixin, View):
         task.complete = not task.complete
         task.save()
         return self.render_json_response({"status": "OK"})
+
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = "registration/password_change.html"
+    success_url = reverse_lazy("password-change-done")
+
+
+class CustomPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
+    template_name = "registration/pass_change_done.html"
+
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = "registration/password_reset.html"
+    email_template_name = "registration/password_reset_email.html"
+    success_url = reverse_lazy("password-reset-done")
+
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = "registration/pass_reset_done.html"
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = "registration/password_reset_conf.html"
+
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = "registration/password_reset_compl.html"

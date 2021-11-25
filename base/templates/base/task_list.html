@@ -1,4 +1,4 @@
-{% extends 'base/main.html' %}
+{% extends 'main.html' %}
 {% load static %}
 {% block title %}Список задач{% endblock title %}
 
@@ -9,12 +9,14 @@
         <h1>{{ request.user|title }}</h1>
         <h3 style="margin:0">Количество незаконченных задач: <div class="uncomplete-count">{{ count }}</div></h3>
     </div>
-
-    {% if request.user.is_authenticated %}
+    <div>
+        {% if request.user.is_authenticated %}
+        <a style="margin-right:50px;" href="{% url 'password-change' %}"><b>Сменить пароль</b></a>
         <a href="{% url 'logout' %}"><b>Выйти</b></a>
     {% else %}
         <a href="{% url 'login' %}"><b>Войти</b></a>
     {% endif %}
+    </div>
 </div>
 
 <div class="container-body">
