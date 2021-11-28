@@ -9,6 +9,8 @@ __pycache__/
 # Personal
 .env
 media
+Dockerfile
+docker-compose*
 
 # Distribution / packaging
 .Python
