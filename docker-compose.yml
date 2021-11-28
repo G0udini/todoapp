@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    restart: always
+    command: "/usr/src/app/entrypoint.sh db python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./base:/usr/src/app/base
+      - ./todo:/usr/src/app/todo
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    depends_on:
+     - db
+
+  db:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_pass
+      - POSTGRES_DB=todo_app
+    ports:
+      - 5432:5432
+volumes:
+  postgres_data:  
