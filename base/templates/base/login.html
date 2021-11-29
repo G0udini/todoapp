@@ -18,7 +18,10 @@
             <input class="button" type="submit" value="Войти">
         </div>
     </form>
+    <div style="display: flex; justify-content: space-between;">
     <p>Еще нет аккаунта?:  <a href="{% url 'register' %}">Регистрация</a></p>
+    <p>Забыли пароль?:  <a href="{% url 'password-reset' %}">Восстановить</a></p>
+    </div>
 </div>
 
 {% endblock content %}

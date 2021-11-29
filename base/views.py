@@ -4,7 +4,6 @@ from django.views import View
 from django.views.generic.list import ListView
 from django.views.generic.edit import DeleteView, FormView
 from django.urls import reverse_lazy
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import (
@@ -19,7 +18,7 @@ from django.contrib.auth.views import (
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from .models import Task, TickList
-from .forms import TaskForm, TickListInlineFormSet
+from .forms import MyUserCreationForm, TaskForm, TickListInlineFormSet
 from braces.views import JsonRequestResponseMixin
 
 
@@ -140,7 +139,7 @@ class CustomLogin(LoginView):
 
 class RegisterPage(FormView):
     template_name = "base/register.html"
-    form_class = UserCreationForm
+    form_class = MyUserCreationForm
     redirect_authenticated_user = True
 
     def get_success_url(self):
@@ -192,7 +191,7 @@ class CustomPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
 
 class CustomPasswordResetView(PasswordResetView):
     template_name = "registration/password_reset.html"
-    email_template_name = "registration/password_reset_email.html"
+    email_template_name = "registration/pass_reset_email.html"
     success_url = reverse_lazy("password-reset-done")
 
 
@@ -202,6 +201,7 @@ class CustomPasswordResetDoneView(PasswordResetDoneView):
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = "registration/password_reset_conf.html"
+    success_url = reverse_lazy("password-reset-complete")
 
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
