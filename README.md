@@ -23,7 +23,7 @@ Use **docker-compose up --build** command to run app in docker
 
 ## Description
 1. Create any number of tasks
-2. Main page show all the info aobut each task
+2. Main page show all the info about each task
 3. Each task has own todo list that shows the real progress
 4. You can easily change the number of subtasks and their status
 5. You can change the order and completeness of tasks dynamically

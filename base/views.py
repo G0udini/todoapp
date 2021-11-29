@@ -1,4 +1,5 @@
 from django.db.models import F
+from django.db.models.expressions import Case, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic.list import ListView
@@ -38,11 +39,11 @@ class TaskList(LoginRequiredMixin, ListView):
 
         context["count"] = tasks.filter(complete=False).count()
         tasks = tasks.annotate(
-            tickspers=F("done_ticks") * 100 / F("number_of_ticks")
-        ).values(
-            "id", "title", "complete", "tickspers", "done_ticks", "number_of_ticks"
+            tickspers=Case(
+                When(number_of_ticks=0, then=0),
+                default=F("done_ticks") * 100 / F("number_of_ticks"),
+            )
         )
-
         paginator = Paginator(tasks, 10)
         context["page_limit"] = paginator.num_pages
         self.validate_page(context, paginator, page_number)

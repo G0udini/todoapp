@@ -130,6 +130,10 @@ LOGIN_URL = "login"
 
 INTERNAL_IPS = ["127.0.0.1", "0.0.0.0"]
 
+import socket
+
+hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+INTERNAL_IPS += [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
