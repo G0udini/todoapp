@@ -13,11 +13,12 @@ SECRET_KEY=
 DEBUG=
 
 DATABASE_ENGINE=django.db.backends.postgresql
-DATABASE_NAME=
-DATABASE_USER=
-DATABASE_PASSWORD=
 DATABASE_HOST=db
 DATABASE_PORT=5432
+
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
 ```
 Use **docker-compose up --build** command to run app in docker
 
