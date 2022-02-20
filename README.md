@@ -1,10 +1,14 @@
 # ToDo Application
-### An application via which you can manage your daily routine and tasks to organize your day productively.
-___
 
+### An application via which you can manage your daily routine and tasks to organize your day productively
+
+___
+![](preview.gif)
 
 ## Build & Run
-### requirements:
+
+### requirements
+
 * docker
 * .env file in root directory with following rules:
 
@@ -20,9 +24,11 @@ POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
 ```
+
 Use **docker-compose up --build** command to run app in docker
 
 ## Description
+
 1. Create any number of tasks
 2. Main page show all the info about each task
 3. Each task has own todo list that shows the real progress
