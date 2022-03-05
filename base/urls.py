@@ -1,4 +1,6 @@
 from django.urls import path
+from django.contrib.auth.views import LogoutView
+
 from .views import (
     TaskList,
     TaskCreateUpdate,
@@ -14,7 +16,6 @@ from .views import (
     CustomPasswordResetConfirmView,
     CustomPasswordResetCompleteView,
 )
-from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path("", TaskList.as_view(), name="tasks"),

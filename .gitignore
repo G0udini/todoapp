@@ -9,6 +9,9 @@ __pycache__/
 # Personal
 .env
 media
+Pipfile
+Pipfile.lock
+.vscode
 
 # Distribution / packaging
 .Python

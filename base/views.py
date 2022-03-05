@@ -1,5 +1,5 @@
 from django.db.models import F
-from django.db.models.expressions import Case, Value, When
+from django.db.models.expressions import Case, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic.list import ListView
@@ -16,54 +16,58 @@ from django.contrib.auth.views import (
     PasswordResetCompleteView,
     PasswordResetConfirmView,
 )
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from braces.views import JsonRequestResponseMixin
 
 from .models import Task, TickList
 from .forms import MyUserCreationForm, TaskForm, TickListInlineFormSet
-from braces.views import JsonRequestResponseMixin
 
 
 class TaskList(LoginRequiredMixin, ListView):
-    model = Task
     context_object_name = "tasks"
+    paginate_by = 10
 
-    def get_context_data(self, **kwargs):
-        context = {}
-        page_number = self.request.GET.get("page")
-        search_input = self.request.GET.get("search-area") or ""
+    def get_queryset(self):
         tasks = Task.objects.filter(user=self.request.user)
 
-        if search_input:
+        if search_input := self.request.GET.get("search-area"):
             tasks = tasks.filter(title__icontains=search_input)
-            context["search_input"] = search_input
 
-        context["count"] = tasks.filter(complete=False).count()
         tasks = tasks.annotate(
             tickspers=Case(
                 When(number_of_ticks=0, then=0),
                 default=F("done_ticks") * 100 / F("number_of_ticks"),
             )
         )
-        paginator = Paginator(tasks, 10)
-        context["page_limit"] = paginator.num_pages
-        self.validate_page(context, paginator, page_number)
+        return tasks
+
+    def paginate_queryset(self, queryset, page_size):
+        paginator = self.get_paginator(
+            queryset,
+            page_size,
+            orphans=self.get_paginate_orphans(),
+            allow_empty_first_page=self.get_allow_empty(),
+        )
+        page_kwarg = self.page_kwarg
+        page_number = (
+            self.kwargs.get(page_kwarg) or self.request.GET.get(page_kwarg) or 1
+        )
+        page = paginator.get_page(page_number)
+        return (paginator, page, page.object_list, page.has_other_pages())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["search_input"] = self.request.GET.get("search-area", "")
+        context["page_number"] = context["page_obj"].number
+        context["page_limit"] = context["paginator"].num_pages
+        context["count"] = self.object_list.filter(complete=False).count()
+
         return context
 
     def get_template_names(self):
         if self.request.is_ajax():
             return "base/task_wrapper.html"
         return "base/task_list.html"
-
-    def validate_page(self, context, paginator, page_number):
-        try:
-            context["tasks"] = paginator.page(page_number)
-            context["page_number"] = page_number
-        except PageNotAnInteger:
-            context["tasks"] = paginator.page(1)
-            context["page_number"] = 1
-        except EmptyPage:
-            context["tasks"] = paginator.page(paginator.num_pages)
-            context["page_number"] = paginator.num_pages
 
 
 class TaskCreateUpdate(LoginRequiredMixin, View):
@@ -115,10 +119,8 @@ class TaskCreateUpdate(LoginRequiredMixin, View):
                 tick = tick_form.save(commit=False)
                 tick.task = task
                 tick.save()
-            else:
-                tick = tick_form.cleaned_data.get("id")
-                if tick:
-                    deletion.append(tick.id)
+            elif tick := tick_form.cleaned_data.get("id"):
+                deletion.append(tick.id)
         if deletion:
             TickList.objects.filter(id__in=deletion).delete()
 
