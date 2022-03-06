@@ -1,9 +1,10 @@
 from django.db.models import F
 from django.db.models.expressions import Case, When
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect
 from django.views import View
 from django.views.generic.list import ListView
-from django.views.generic.edit import DeleteView, FormView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import DeleteView, FormView, CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -18,7 +19,8 @@ from django.contrib.auth.views import (
 )
 from braces.views import JsonRequestResponseMixin
 
-from .models import Task, TickList
+from .mixins import PostTaskFormProcessMixin
+from .models import Task
 from .forms import MyUserCreationForm, TaskForm, TickListInlineFormSet
 
 
@@ -61,7 +63,6 @@ class TaskList(LoginRequiredMixin, ListView):
         context["page_number"] = context["page_obj"].number
         context["page_limit"] = context["paginator"].num_pages
         context["count"] = self.object_list.filter(complete=False).count()
-
         return context
 
     def get_template_names(self):
@@ -70,59 +71,28 @@ class TaskList(LoginRequiredMixin, ListView):
         return "base/task_list.html"
 
 
-class TaskCreateUpdate(LoginRequiredMixin, View):
-    template_name = "base/task_form.html"
+class TaskDetail(LoginRequiredMixin, PostTaskFormProcessMixin, DetailView):
+    template_name = "base/task_detail.html"
 
-    def get(self, request, *args, **kwargs):
-        task = None
-        if kwargs.get("pk"):
-            key = kwargs.get("pk")
-            task = get_object_or_404(
-                Task.objects.prefetch_related("ticklist"), id=key, user=request.user
-            )
-        context = {
-            "ticklist_form": TickListInlineFormSet(instance=task),
-            "task_form": TaskForm(instance=task),
+    def get_queryset(self):
+        return Task.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        return {
+            "task_form": TaskForm(instance=self.object),
+            "ticklist_form": TickListInlineFormSet(instance=self.object),
+            "task": self.object,
         }
-        return render(request, self.template_name, context)
 
-    def post(self, request, *args, **kwargs):
-        task_instance = None
-        if kwargs.get("pk"):
-            task_instance = Task.objects.get(id=kwargs.get("pk"))
-        task_form = TaskForm(request.POST, instance=task_instance)
-        if task_form.is_valid():
-            task = task_form.save(commit=False)
-            task.user = request.user
-            formset = TickListInlineFormSet(request.POST, instance=task)
-            if formset.is_valid():
-                self.calculate_ticks_number(task, formset)
-                task.save()
-                self.check_formset(task, formset)
 
-        return redirect("tasks")
+class TaskCreate(LoginRequiredMixin, PostTaskFormProcessMixin, CreateView):
+    template_name = "base/task_detail.html"
 
-    def calculate_ticks_number(self, task, formset):
-        done_ticks, cnt_ticks = 0, 0
-        for tick in formset:
-            if tick.cleaned_data.get("title"):
-                cnt_ticks += 1
-                if tick.cleaned_data.get("completed"):
-                    done_ticks += 1
-        task.done_ticks = done_ticks
-        task.number_of_ticks = cnt_ticks
-
-    def check_formset(self, task, formset):
-        deletion = []
-        for tick_form in formset:
-            if tick_form.cleaned_data.get("title"):
-                tick = tick_form.save(commit=False)
-                tick.task = task
-                tick.save()
-            elif tick := tick_form.cleaned_data.get("id"):
-                deletion.append(tick.id)
-        if deletion:
-            TickList.objects.filter(id__in=deletion).delete()
+    def get_context_data(self, **kwargs):
+        return {
+            "task_form": TaskForm(),
+            "ticklist_form": TickListInlineFormSet(),
+        }
 
 
 class TaskDelete(LoginRequiredMixin, DeleteView):
