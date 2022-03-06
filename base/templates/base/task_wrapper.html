@@ -3,10 +3,10 @@
             <div class="task-title">
                 {% if task.complete %}
                     <div class="task-complete-icon"></div>
-                    <a class="complete-cross" href="{% url 'task-update' task.id %}">{{task.title}}</a>
+                    <a class="complete-cross" href="{% url 'task-detail' task.id %}">{{task.title}}</a>
                 {% else %}
                     <div class="task-incomplete-icon"></div>
-                    <a href="{% url 'task-update' task.id %}">{{task.title}}</a> 
+                    <a href="{% url 'task-detail' task.id %}">{{task.title}}</a> 
                 {% endif %}
             </div>
             <div class="task-controls">

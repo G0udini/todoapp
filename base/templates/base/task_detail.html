@@ -1,6 +1,12 @@
 {% extends 'main.html' %}
 
-{% block title %}Новая задачая{% endblock title %}
+{% block title %}
+    {% if task %}
+        {{ task.title }}
+    {% else %}
+        Новое задание
+    {% endif %}
+{% endblock title %}
 
 {% block content %}
 <div class="header-bar">
