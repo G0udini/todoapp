@@ -17,6 +17,14 @@ class TaskQueryset:
         self._annotate_queryset_with_ticks()
         return self.queryset
 
+    def get_task_object(self, user, pk):
+        self._get_all_user_tasks(user)
+        self._get_task_by_pk(pk)
+        return self.queryset
+
+    def _get_task_by_pk(self, pk):
+        self.queryset = self.queryset.get(pk=pk)
+
     def _get_all_user_tasks(self, user):
         self.queryset = self.queryset.filter(user=user)
 

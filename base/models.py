@@ -4,7 +4,7 @@ from django.conf import settings
 
 class Task(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=60)
     description = models.TextField(blank=True)
     complete = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -22,7 +22,7 @@ class Task(models.Model):
 
 class TickList(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="ticklist")
-    title = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=60, blank=True)
     completed = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
 
