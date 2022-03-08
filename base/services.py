@@ -1,5 +1,8 @@
-from base.crud import TaskQueryset
+from base.crud import TaskQueryset, TickQueryset
+from base.forms import TaskForm, TickListInlineFormSet
+from base.models import TickList
 from base.paginators import TaskPaginator
+from base.utils import TickFormsCalc
 
 
 class TaskListService:
@@ -26,8 +29,8 @@ class TaskListService:
         return {
             "tasks": queryset,
             "search_input": self.search_field,
-            "page_number": total_pages,
-            "page_limit": page_number,
+            "page_limit": total_pages,
+            "page_number": page_number,
             "count": task_count,
         }
 
@@ -38,3 +41,73 @@ class TaskListService:
         return self._build_context(
             total_pages, page_number, queryset, uncompleted_count
         )
+
+
+class TaskObjectService:
+    def __init__(self, request, **kwargs):
+        self.user = request.user
+        self.pk = kwargs.get("pk")
+
+    def _get_object(self):
+        return TaskQueryset().get_task_object(user=self.user, pk=self.pk)
+
+    def _get_object_or_none(self):
+        return self._get_object() if self.pk else None
+
+
+class TaskGetObjectService(TaskObjectService):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _build_base_context(self, object):
+        return {
+            "task_form": TaskForm(instance=object),
+            "ticklist_form": TickListInlineFormSet(instance=object),
+        }
+
+    def _add_object_to_context(self, object):
+        return {"task": object} if object else {}
+
+    def _build_context(self, object):
+        context = self._build_base_context(object)
+        extra_context = self._add_object_to_context(object)
+        context.update(extra_context)
+        return context
+
+    def execute_get_request(self):
+        object = self._get_object_or_none()
+        return self._build_context(object)
+
+
+class TaskPostObjectService(TaskObjectService):
+    def __init__(self, request, *args, **kwargs):
+        self.request_data = request.POST
+        super().__init__(request, *args, **kwargs)
+
+    def _process_task_form(self, object):
+        task_form = TaskForm(self.request_data, instance=object)
+        if task_form.is_valid():
+            self.task = task_form.save(commit=False)
+            self.task.user = self.user
+            return self._process_ticklist_form()
+
+    def _process_ticklist_form(self):
+        formset = TickListInlineFormSet(self.request_data, instance=self.task)
+        if formset.is_valid():
+            self._validate_ticks_number(formset)
+            self.task.save()
+            self._check_formset(formset)
+            return True
+
+    def _validate_ticks_number(self, formset):
+        cnt_ticks, done_ticks = TickFormsCalc._calculate_ticks_done_and_cnt(formset)
+        self.task.number_of_ticks = cnt_ticks
+        self.task.done_ticks = done_ticks
+
+    def _check_formset(self, formset, model_formset=TickList):
+        if deletion := TickFormsCalc._get_ticks_for_delete_or_save(self.task, formset):
+            TickQueryset.bulk_delete_empty_ticks(deletion)
+
+    def execute_post_request(self):
+        object = self._get_object_or_none()
+        return self._process_task_form(object)

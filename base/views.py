@@ -1,15 +1,16 @@
+from multiprocessing import get_context
+from django.http import HttpResponseRedirect
 from django.views import View
 from django.views.generic import TemplateView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import DeleteView, CreateView
-from django.urls import reverse_lazy
+from django.views.generic.edit import ProcessFormView
+from django.views.generic.edit import DeleteView, CreateView, UpdateView
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from braces.views import JsonRequestResponseMixin
 
-from .mixins import PostTaskFormProcessMixin
+from .mixins import PostTaskMixin
 from .models import Task
-from .forms import TaskForm, TickListInlineFormSet
-from base.services import TaskListService
+from base.services import TaskListService, TaskGetObjectService, TaskPostObjectService
 
 
 class TaskList(LoginRequiredMixin, TemplateView):
@@ -25,28 +26,26 @@ class TaskList(LoginRequiredMixin, TemplateView):
         return context
 
 
-class TaskDetail(LoginRequiredMixin, PostTaskFormProcessMixin, DetailView):
+class TaskObject(LoginRequiredMixin, TemplateView):
     template_name = "base/task_detail.html"
-
-    def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)
+    success_url = reverse_lazy("tasks")
 
     def get_context_data(self, **kwargs):
-        return {
-            "task_form": TaskForm(instance=self.object),
-            "ticklist_form": TickListInlineFormSet(instance=self.object),
-            "task": self.object,
-        }
+        context = super().get_context_data(**kwargs)
+        extra_context = TaskGetObjectService(
+            self.request, **kwargs
+        ).execute_get_request()
+        context.update(extra_context)
+        return context
 
-
-class TaskCreate(LoginRequiredMixin, PostTaskFormProcessMixin, CreateView):
-    template_name = "base/task_detail.html"
-
-    def get_context_data(self, **kwargs):
-        return {
-            "task_form": TaskForm(),
-            "ticklist_form": TickListInlineFormSet(),
-        }
+    def post(self, request, *args, **kwargs):
+        submit_forms = TaskPostObjectService(
+            self.request, **kwargs
+        ).execute_post_request()
+        if submit_forms:
+            redirect_url = str(self.success_url)
+            return HttpResponseRedirect(redirect_url)
+        return self.render_to_response(self.get_context_data(**kwargs))
 
 
 class TaskDelete(LoginRequiredMixin, DeleteView):
