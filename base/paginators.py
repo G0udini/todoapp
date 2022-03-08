@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 
-TASK_LIST_OBJECTS_PER_PAGE = 10
+TASK_LIST_OBJECTS_PER_PAGE = 12
 
 
 class TaskPaginator(Paginator):

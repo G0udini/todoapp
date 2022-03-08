@@ -1,4 +1,4 @@
-from base.models import Task
+from base.models import Task, TickList
 from django.db.models import F
 from django.db.models.expressions import Case, When
 
@@ -46,3 +46,9 @@ class TaskQueryset:
         self._get_all_user_tasks(user)
         if search:
             self._get_search_filter_queryset(search)
+
+
+class TickQueryset:
+    @staticmethod
+    def bulk_delete_empty_ticks(deletion_array):
+        TickList.objects.filter(id__in=deletion_array).delete()
