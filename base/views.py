@@ -1,16 +1,19 @@
-from multiprocessing import get_context
 from django.http import HttpResponseRedirect
 from django.views import View
-from django.views.generic import TemplateView
-from django.views.generic.edit import ProcessFormView
-from django.views.generic.edit import DeleteView, CreateView, UpdateView
-from django.urls import reverse, reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
 from braces.views import JsonRequestResponseMixin
+from django.views.generic import TemplateView
+from django.views.generic.edit import DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .mixins import PostTaskMixin
-from .models import Task
-from base.services import TaskListService, TaskGetObjectService, TaskPostObjectService
+from base.models import Task
+from base.services import (
+    TaskListService,
+    TaskGetObjectService,
+    TaskPostObjectService,
+    TaskReorderService,
+    TaskCompleteService,
+)
 
 
 class TaskList(LoginRequiredMixin, TemplateView):
@@ -55,23 +58,16 @@ class TaskDelete(LoginRequiredMixin, DeleteView):
 
 
 class TaskReorder(JsonRequestResponseMixin, View):
-    def post(self, request):
-        try:
-            position = self.request_json
-        except KeyError:
-            return self.render_bad_request_response({"status": "Canceled"})
-
-        self.request.user.set_task_order(position)
-        return self.render_json_response({"status": "OK"})
+    def post(self, request, *args, **kwargs):
+        context = TaskReorderService(self).execute_task_reorder()
+        if context["status"] == "200":
+            return self.render_json_response(context)
+        return self.render_bad_request_response(context)
 
 
 class TaskComplete(JsonRequestResponseMixin, View):
-    def post(self, request):
-        try:
-            task_id = self.request_json
-        except KeyError:
-            return self.render_bad_request_response({"status": "Not saved"})
-        task = Task.objects.get(id=task_id)
-        task.complete = not task.complete
-        task.save()
-        return self.render_json_response({"status": "OK"})
+    def post(self, request, *args, **kwargs):
+        context = TaskCompleteService(self).execute_task_complete()
+        if context["status"] == "200":
+            return self.render_json_response(context)
+        return self.render_bad_request_response(context)

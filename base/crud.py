@@ -22,6 +22,11 @@ class TaskQueryset:
         self._get_task_by_pk(pk)
         return self.queryset
 
+    def change_task_complete(self, user, pk):
+        self.get_task_object(user, pk)
+        self.queryset.complete = not self.queryset.complete
+        self.queryset.save()
+
     def _get_task_by_pk(self, pk):
         self.queryset = self.queryset.get(pk=pk)
 
@@ -52,3 +57,9 @@ class TickQueryset:
     @staticmethod
     def bulk_delete_empty_ticks(deletion_array):
         TickList.objects.filter(id__in=deletion_array).delete()
+
+
+class UserQueryset:
+    @staticmethod
+    def set_new_task_order(user, position):
+        user.set_task_order(position)

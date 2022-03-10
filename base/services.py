@@ -1,6 +1,5 @@
-from base.crud import TaskQueryset, TickQueryset
+from base.crud import TaskQueryset, TickQueryset, UserQueryset
 from base.forms import TaskForm, TickListInlineFormSet
-from base.models import TickList
 from base.paginators import TaskPaginator
 from base.utils import TickFormsCalc
 
@@ -43,7 +42,7 @@ class TaskListService:
         )
 
 
-class TaskObjectService:
+class TaskQueryObjectService:
     def __init__(self, request, **kwargs):
         self.user = request.user
         self.pk = kwargs.get("pk")
@@ -55,9 +54,9 @@ class TaskObjectService:
         return self._get_object() if self.pk else None
 
 
-class TaskGetObjectService(TaskObjectService):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class TaskGetObjectService:
+    def __init__(self, request, **kwargs):
+        self.object_query = TaskQueryObjectService(request, **kwargs)
 
     def _build_base_context(self, object):
         return {
@@ -75,14 +74,15 @@ class TaskGetObjectService(TaskObjectService):
         return context
 
     def execute_get_request(self):
-        object = self._get_object_or_none()
+        object = self.object_query._get_object_or_none()
         return self._build_context(object)
 
 
-class TaskPostObjectService(TaskObjectService):
+class TaskPostObjectService:
     def __init__(self, request, *args, **kwargs):
         self.request_data = request.POST
-        super().__init__(request, *args, **kwargs)
+        self.user = request.user
+        self.object_query = TaskQueryObjectService(request, *args, **kwargs)
 
     def _process_task_form(self, object):
         task_form = TaskForm(self.request_data, instance=object)
@@ -104,10 +104,52 @@ class TaskPostObjectService(TaskObjectService):
         self.task.number_of_ticks = cnt_ticks
         self.task.done_ticks = done_ticks
 
-    def _check_formset(self, formset, model_formset=TickList):
+    def _check_formset(self, formset):
         if deletion := TickFormsCalc._get_ticks_for_delete_or_save(self.task, formset):
             TickQueryset.bulk_delete_empty_ticks(deletion)
 
     def execute_post_request(self):
-        object = self._get_object_or_none()
+        object = self.object_query._get_object_or_none()
         return self._process_task_form(object)
+
+
+class JSONProcessService:
+    def __init__(self, request_object):
+        self.user = request_object.request.user
+        self.data = request_object.get_request_json()
+
+    def build_400_context(self):
+        return {
+            "status": "400",
+            "massage": "Bad Request",
+            "detail": "Request not processed",
+        }
+
+    def build_200_context(self):
+        return {
+            "status": "200",
+            "massage": "OK",
+            "detail": "Success",
+        }
+
+
+class TaskReorderService:
+    def __init__(self, request_object):
+        self.object = JSONProcessService(request_object)
+
+    def execute_task_reorder(self):
+        if not self.object.data:
+            return self.object.build_400_context()
+        UserQueryset.set_new_task_order(self.object.user, self.object.data)
+        return self.object.build_200_context()
+
+
+class TaskCompleteService:
+    def __init__(self, request_object):
+        self.object = JSONProcessService(request_object)
+
+    def execute_task_complete(self):
+        if not self.object.data:
+            return self.object.build_400_context()
+        TaskQueryset().change_task_complete(self.object.user, self.object.data)
+        return self.object.build_200_context()
