@@ -4,8 +4,8 @@ TASK_LIST_OBJECTS_PER_PAGE = 12
 
 
 class TaskPaginator(Paginator):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, per_page=TASK_LIST_OBJECTS_PER_PAGE, **kwargs)
+    def __init__(self, *args, per_page=TASK_LIST_OBJECTS_PER_PAGE, **kwargs):
+        super().__init__(*args, per_page, **kwargs)
 
     def get_paginated_context(self, page_number):
         page = self.get_page(page_number)
